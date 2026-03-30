@@ -35,7 +35,7 @@ services:
       - ENV=dev
       - WEBUI_AUTH=False
       - WEBUI_NAME=valiantlynx AI
-      - WEBUI_URL=http://${HOST_URL}:${UI_PORT}
+      - WEBUI_URL=${HOST_URL}:${UI_PORT}
       - WEBUI_SECRET_KEY=${KEY}
       - NO_PROXY=host.docker.internal
     restart: unless-stopped
