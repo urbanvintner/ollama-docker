@@ -1,19 +1,4 @@
-services:
-  app:
-    build: .
-    ports:
-      - 7777:8000
-      - 5678:5678
-    volumes:
-      - ${BASE_PATH}:/code
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-    restart: always
-    depends_on:
-      - ollama
-      - ollama-webui
-    networks:
-      - ollama-docker
-      
+services: 
   ollama:
     volumes:
       - ${BASE_PATH}/ollama/ollama:/root/.ollama
