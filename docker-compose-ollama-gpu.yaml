@@ -33,7 +33,7 @@ services:
     environment:
       - OLLAMA_BASE_URLS=http://ollama:11434
       - ENV=dev
-      - WEBUI_AUTH=False
+      - WEBUI_AUTH=${AUTH}
       - WEBUI_NAME=Homelab AI
       - WEBUI_URL=${HOST_URL}:${UI_PORT}
       - WEBUI_SECRET_KEY=${KEY}
