@@ -46,6 +46,16 @@ services:
     networks:
       - ollama-docker
 
+searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - ${SEARCH_PORT}:8080
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - BASE_URL=http://${HOST_URL}:${SEARCH_PORT}/
 networks:
   ollama-docker:
     external: false
