@@ -1,20 +1,27 @@
-services: 
+version: "3.8"
+
+services:
   ollama:
-    volumes:
-      - ${BASE_PATH}/ollama/ollama:/root/.ollama
+    image: docker.io/ollama/ollama:latest
     container_name: ollama
     pull_policy: always
     tty: true
     restart: unless-stopped
-    image: docker.io/ollama/ollama:latest
+
+    volumes:
+      - ${BASE_PATH}/ollama/ollama:/root/.ollama
+
     ports:
-      - 7869:11434
+      - "7869:11434"
+
     environment:
       - OLLAMA_KEEP_ALIVE=24h
-      - OLAMA_MAX_LOADED_MODELs=1
-      - OLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_PARALLEL=1
+
     networks:
       - ollama-docker
+
     deploy:
       resources:
         limits:
@@ -22,27 +29,39 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: all 
+              count: all
               capabilities: [gpu]
 
   ollama-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: ollama-webui
-    volumes:
-      - ${BASE_PATH}/ollama/ollama-webui:/app/backend/data
+    restart: unless-stopped
+
     depends_on:
       - ollama
+      - searxng
+
+    volumes:
+      - ${BASE_PATH}/ollama/ollama-webui:/app/backend/data
+
     ports:
-      - ${UI_PORT}:8080
+      - "${UI_PORT}:8080"
+
     environment:
-      - OLLAMA_BASE_URLS=http://ollama:11434
+      - OLLAMA_BASE_URL=http://ollama:11434
       - ENV=dev
       - WEBUI_AUTH=${AUTH}
       - WEBUI_NAME=Homelab AI
-      - WEBUI_URL=${HOST_URL}:${UI_PORT}
+      - WEBUI_URL=http://${HOST_URL}:${UI_PORT}
       - WEBUI_SECRET_KEY=${KEY}
-      - NO_PROXY=host.docker.internal
-    restart: unless-stopped
+
+      # ✅ Web Search (SearXNG)
+      - ENABLE_RAG_WEB_SEARCH=true
+      - RAG_WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      - RAG_WEB_SEARCH_RESULT_COUNT=5
+      - RAG_WEB_SEARCH_CONCURRENT_REQUESTS=8
+
     networks:
       - ollama-docker
 
@@ -50,12 +69,20 @@ services:
     image: searxng/searxng:latest
     container_name: searxng
     restart: unless-stopped
+
     ports:
-      - ${SEARCH_PORT}:8080
+      - "${SEARCH_PORT}:8080"
+
     volumes:
       - ./searxng:/etc/searxng:rw
+
     environment:
       - BASE_URL=http://${HOST_URL}:${SEARCH_PORT}/
+      - INSTANCE_NAME=searxng
+
+    networks:
+      - ollama-docker
+
 networks:
   ollama-docker:
-    external: false
+    driver: bridge
